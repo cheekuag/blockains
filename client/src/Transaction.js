@@ -30,7 +30,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MyTransactionlist = exports.MyWallet = void 0;
+exports.makeBlock = exports.MyTransactionlist = exports.MyWallet = void 0;
 //import * as CryptoJS from 'crypto-js';
 var node_forge_1 = __importDefault(require("node-forge"));
 // Generate a key pair
@@ -210,12 +210,10 @@ var Block = /** @class */ (function () {
         if (difficulty === void 0) { difficulty = Overalldifficulty; }
         if (ts === void 0) { ts = Date.now(); }
         // Get the length of the chain and set the index of the block
-        if (flag) {
+        if (flag)
             this.index = MyChain.chain.length;
-        }
-        else {
+        else
             this.index = 0;
-        }
         this.prevHash = prevHash;
         this.difficulty = difficulty;
         this.transactionlist = transactions;
@@ -470,6 +468,77 @@ function sendtransaction(transaction) {
 function sendBlock(block) {
     // 
 }
+// Take the transactionperblock transactions from mytransactionlist and make a block and mine it
+function makeBlock() {
+    var e_9, _a, e_10, _b, e_11, _c;
+    var transactions = [];
+    for (var i = 0; i < tranactionPerBlock; i++) {
+        transactions.push(MyTransactionlist.pop());
+    }
+    var prevHash = MyChain.lastBlock.hash;
+    var block = new Block(prevHash, transactions);
+    // for each transaction calculate the diffrenec e between inout and outputs and add te coinbase transactions with input as null and output as the difference
+    for (var transactionIndex = 0; transactionIndex < transactions.length; transactionIndex++) {
+        var transaction = transactions[transactionIndex];
+        try {
+            for (var _d = (e_9 = void 0, __values(transaction.Inputs.inputList)), _e = _d.next(); !_e.done; _e = _d.next()) {
+                var input = _e.value;
+                // Check if the transaction hash and output index key is present in the transaction pool
+                if (!MyTransactionPool.transactionPool.has([input.transactionHash, input.outputIndex])) {
+                    return null; // Return false if any input is not present in the transaction pool
+                }
+            }
+        }
+        catch (e_9_1) { e_9 = { error: e_9_1 }; }
+        finally {
+            try {
+                if (_e && !_e.done && (_a = _d.return)) _a.call(_d);
+            }
+            finally { if (e_9) throw e_9.error; }
+        }
+        // Calculate the sum of amounts from input entries
+        var inputSum = 0;
+        try {
+            for (var _f = (e_10 = void 0, __values(transaction.Inputs.inputList)), _g = _f.next(); !_g.done; _g = _f.next()) {
+                var input = _g.value;
+                var _h = __read(MyTransactionPool.transactionPool.get([input.transactionHash, input.outputIndex]), 2), blockIndex = _h[0], transactionIndex_2 = _h[1];
+                var outputAmount = MyChain.chain[blockIndex].transactionlist[transactionIndex_2].Outputs.outputList[input.outputIndex].amount;
+                inputSum += outputAmount;
+            }
+        }
+        catch (e_10_1) { e_10 = { error: e_10_1 }; }
+        finally {
+            try {
+                if (_g && !_g.done && (_b = _f.return)) _b.call(_f);
+            }
+            finally { if (e_10) throw e_10.error; }
+        }
+        // Calculate the sum of amounts from output entries
+        var outputSum = 0;
+        try {
+            for (var _j = (e_11 = void 0, __values(transaction.Outputs.outputList)), _k = _j.next(); !_k.done; _k = _j.next()) {
+                var output = _k.value;
+                outputSum += output.amount;
+            }
+        }
+        catch (e_11_1) { e_11 = { error: e_11_1 }; }
+        finally {
+            try {
+                if (_k && !_k.done && (_c = _j.return)) _c.call(_j);
+            }
+            finally { if (e_11) throw e_11.error; }
+        }
+        // If input amount sum is less than output amount sum, return false
+        if (inputSum < outputSum) {
+            return null;
+        }
+        // Add the positive difference to the coinbase variable
+        block.coinbase += inputSum - outputSum;
+    }
+    block.mineBlock();
+    return block;
+}
+exports.makeBlock = makeBlock;
 var MyTemporaryTransactionPool = new TransactionPool();
 var MyTransactionPool = new TransactionPool();
 var MyWallet = new Wallet();
