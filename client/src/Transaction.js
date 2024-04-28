@@ -30,7 +30,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.makeBlock = exports.MyTransactionlist = exports.MyWallet = void 0;
+exports.validateblock = exports.makeBlock = exports.MyTransactionlist = exports.MyWallet = void 0;
 //import * as CryptoJS from 'crypto-js';
 var node_forge_1 = __importDefault(require("node-forge"));
 // Generate a key pair
@@ -468,6 +468,10 @@ function sendtransaction(transaction) {
 function sendBlock(block) {
     // 
 }
+function validateblock(Block) {
+    return Block.validateBlock();
+}
+exports.validateblock = validateblock;
 // Take the transactionperblock transactions from mytransactionlist and make a block and mine it
 function makeBlock() {
     var e_9, _a, e_10, _b, e_11, _c;
