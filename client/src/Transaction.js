@@ -368,42 +368,6 @@
 // }
 
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 var __values = (this && this.__values) || function(o) {
     var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
     if (m) return m.call(o);
@@ -446,7 +410,7 @@ var PRIVATE_KEY = node_forge_1.default.pki.privateKeyToPem(keyPair.privateKey);
 // const { generateKeyPairSync } = await import('crypto');
 // const crypto = require('crypto');
 // Create a transaction pool to store the unspent tranactions hash and their block index and transactiion index
-// var _a = require('./constants.js'), PUBLIC_KEY = _a.PUBLIC_KEY, PRIVATE_KEY = _a.PRIVATE_KEY;
+// const { PUBLIC_KEY, PRIVATE_KEY } = require('./constants.js');
 console.log('Public Key:', PUBLIC_KEY);
 console.log('Private Key:', PRIVATE_KEY);
 // Create a transaction pool to store the unspent tranactions hash , their output index and their block index and transactiion index
@@ -842,69 +806,94 @@ var Chain = /** @class */ (function () {
 // Wallet gives a user a public/private keypair
 var Wallet = /** @class */ (function () {
     function Wallet() {
-        var _this = this;
         this.isInitialized = false;
-        // Generate key pair asynchronously
-        this.generateKeyPair().then(function (_a) {
-            var publicKey = _a.publicKey, privateKey = _a.privateKey;
-            _this.privateKey = privateKey;
-            _this.publicKey = publicKey;
-            _this.isInitialized = true; // Set initialization flag
-        }).catch(function (err) {
-            console.error('Error generating key pair:', err);
-        });
+        var _a = this.generateKeyPairSync(), publicKey = _a.publicKey, privateKey = _a.privateKey;
+        this.privateKey = privateKey;
+        this.publicKey = publicKey;
+        this.isInitialized = true; // Set initialization flag
     }
-    Wallet.prototype.generateKeyPair = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var rsa, keyPair_1;
-            return __generator(this, function (_a) {
-                try {
-                    rsa = node_forge_1.default.pki.rsa;
-                    keyPair_1 = rsa.generateKeyPair({ bits: 2048 });
-                    return [2 /*return*/, { publicKey: keyPair_1.publicKey, privateKey: keyPair_1.privateKey }];
-                }
-                catch (err) {
-                    throw new Error('Error generating key pair');
-                }
-                return [2 /*return*/];
-            });
-        });
+    Wallet.prototype.generateKeyPairSync = function () {
+        try {
+            var rsa = node_forge_1.default.pki.rsa;
+            var keyPair_1 = rsa.generateKeyPair({ bits: 2048 });
+            return { publicKey: keyPair_1.publicKey, privateKey: keyPair_1.privateKey };
+        }
+        catch (err) {
+            throw new Error('Error generating key pair');
+        }
     };
     Wallet.prototype.sendMoney = function (publicKey, money) {
-        return __awaiter(this, void 0, void 0, function () {
-            var inputs, outputs;
-            return __generator(this, function (_a) {
-                // Check if initialized
-                if (!this.isInitialized) {
-                    throw new Error('Wallet is not yet initialized');
-                }
-                inputs = new InputList();
-                outputs = new OutputList();
-                // Add transaction logic...
-                // Create new transaction
-                sendtransaction(new Transaction(inputs, outputs));
-                return [2 /*return*/];
-            });
-        });
+        // Check if initialized
+        if (!this.isInitialized) {
+            throw new Error('Wallet is not yet initialized');
+        }
+        var inputs = new InputList();
+        var outputs = new OutputList();
+        // Add transaction logic...
+        // Create new transaction
+        sendtransaction(new Transaction(inputs, outputs));
+        // Your existing code...
     };
     Wallet.prototype.signAndVerify = function (transaction) {
-        return __awaiter(this, void 0, void 0, function () {
-            var str, data, signature, isValid;
-            return __generator(this, function (_a) {
-                // Check if initialized
-                if (!this.isInitialized) {
-                    throw new Error('Wallet is not yet initialized');
-                }
-                str = transaction.Inputs.toString() + transaction.Outputs.toString();
-                data = node_forge_1.default.util.createBuffer(str, 'utf8');
-                signature = this.privateKey.sign(data);
-                isValid = this.publicKey.verify(data.bytes(), signature);
-                return [2 /*return*/, isValid];
-            });
-        });
+        // Check if initialized
+        if (!this.isInitialized) {
+            throw new Error('Wallet is not yet initialized');
+        }
+        var str = transaction.Inputs.toString() + transaction.Outputs.toString();
+        var data = node_forge_1.default.util.createBuffer(str, 'utf8');
+        var signature = this.privateKey.sign(data);
+        var isValid = this.publicKey.verify(data.bytes(), signature);
+        return isValid;
     };
     return Wallet;
 }());
+// class Wallet {
+//     privateKey!: any; // Change the type to any
+//     publicKey!: any; // Change the type to any
+//     private isInitialized: boolean = false;
+//     constructor() {
+//         // Generate key pair asynchronously
+//         this.generateKeyPair().then(({ publicKey, privateKey }) => {
+//             this.privateKey = privateKey!;
+//             this.publicKey = publicKey!;
+//             this.isInitialized = true; // Set initialization flag
+//         }).catch(err => {
+//             console.error('Error generating key pair:', err);
+//         });
+//     }
+//     async generateKeyPair(): Promise<{ publicKey: any; privateKey: any }> {
+//         try {
+//             const rsa = forge.pki.rsa;
+//             const keyPair = rsa.generateKeyPair({ bits: 2048 });
+//             return { publicKey: keyPair.publicKey, privateKey: keyPair.privateKey };
+//         } catch (err) {
+//             throw new Error('Error generating key pair');
+//         }
+//     }
+//     async sendMoney(publicKey: any, money: number): Promise<void> {
+//         // Check if initialized
+//         if (!this.isInitialized) {
+//             throw new Error('Wallet is not yet initialized');
+//         }
+//         const inputs: InputList = new InputList();
+//         const outputs: OutputList = new OutputList();
+//         // Add transaction logic...
+//         // Create new transaction
+//         sendtransaction(new Transaction(inputs, outputs));
+//         // Your existing code...
+//     }
+//     async signAndVerify(transaction: Transaction): Promise<boolean> {
+//         // Check if initialized
+//         if (!this.isInitialized) {
+//             throw new Error('Wallet is not yet initialized');
+//         }
+//         const str = transaction.Inputs.toString() + transaction.Outputs.toString();
+//         const data = forge.util.createBuffer(str, 'utf8');
+//         const signature = this.privateKey.sign(data);
+//         const isValid = this.publicKey.verify(data.bytes(), signature);
+//         return isValid;
+//     }
+// }
 // class Wallet {
 //     privateKey!: CryptoKey;
 //     publicKey!: CryptoKey;
@@ -991,33 +980,15 @@ var MyWallet = new Wallet();
 exports.MyWallet = MyWallet;
 var bob = new Wallet();
 var MyChain = new Chain();
-// create new lsit of transaction
 var MyTransactionlist = [];
 var satoshi = new Wallet();
 var alice = new Wallet();
-// send money 50 to bob public key
-// console.log(SingletonChain.getInstance().chain);
 function sendMoneyAfterInitialization(wallet, publicKey, amount) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: 
-                // Wait until the wallet is initialized
-                return [4 /*yield*/, wallet.generateKeyPair()];
-                case 1:
-                    // Wait until the wallet is initialized
-                    _a.sent();
-                    // Now the wallet is initialized, you can call sendMoney
-                    return [4 /*yield*/, wallet.sendMoney(publicKey, amount)];
-                case 2:
-                    // Now the wallet is initialized, you can call sendMoney
-                    _a.sent();
-                    return [2 /*return*/];
-            }
-        });
-    });
+    // Wait until the wallet is initialized
+    wallet.generateKeyPairSync();
+    // Now the wallet is initialized, you can call sendMoney
+    wallet.sendMoney(publicKey, amount);
 }
 // Call sendMoneyAfterInitialization for MyWallet
-// convert bob.publickey to string
-sendMoneyAfterInitialization(MyWallet, (bob.publicKey), 50);
-// export {}
+// Convert bob.publickey to string
+sendMoneyAfterInitialization(MyWallet, bob.publicKey, 50);
