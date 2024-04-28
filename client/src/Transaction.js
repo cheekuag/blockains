@@ -286,6 +286,9 @@ var Block = /** @class */ (function () {
             }
         }
         MyChain.chain.push(this);
+        // Print Mychain object
+        console.log('⛏️  Block Added...');
+        console.log(MyChain.toString());
         return true; // Return true if all transactions are valid
     };
     Block.prototype.mineBlock = function () {
