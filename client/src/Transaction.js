@@ -30,7 +30,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MyTemporaryTransactionPool = exports.MyWallet = void 0;
+exports.MyTransactionlist = exports.MyWallet = void 0;
 //import * as CryptoJS from 'crypto-js';
 var node_forge_1 = __importDefault(require("node-forge"));
 // Generate a key pair
@@ -47,6 +47,13 @@ var TransactionPool = /** @class */ (function () {
     function TransactionPool() {
         this.transactionPool = new Map();
     }
+    TransactionPool.prototype.addNewTransaction = function (transaction) {
+        // Iterate over outputs and add them to the transaction pool
+        for (var i = 0; i < transaction.Outputs.outputList.length; i++) {
+            this.addTransaction(transaction.hash, i, 0, 0);
+        }
+        this.transactionPool.set([transaction.hash, 0], [0, 0]);
+    };
     TransactionPool.prototype.addTransaction = function (transactionHash, outputIndex, blockIndex, transactionIndex) {
         this.transactionPool.set([transactionHash, outputIndex], [blockIndex, transactionIndex]);
     };
@@ -464,7 +471,6 @@ function sendBlock(block) {
     // 
 }
 var MyTemporaryTransactionPool = new TransactionPool();
-exports.MyTemporaryTransactionPool = MyTemporaryTransactionPool;
 var MyTransactionPool = new TransactionPool();
 var MyWallet = new Wallet();
 exports.MyWallet = MyWallet;
@@ -472,6 +478,7 @@ var bob = new Wallet();
 var MyChain = new Chain();
 // const MyBlock = new Block();
 var MyTransactionlist = [];
+exports.MyTransactionlist = MyTransactionlist;
 var satoshi = new Wallet();
 var alice = new Wallet();
 function sendMoneyAfterInitialization(wallet, publicKey, amount) {
