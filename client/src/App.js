@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import './App.css'; // Import your CSS file
-import { MyWallet } from './Transaction.js';
+const { MyWallet }  = require('./Transaction.js');
 const socket = io('http://localhost:4000');
 
 function App() {
