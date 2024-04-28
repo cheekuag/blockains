@@ -30,7 +30,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MyWallet = void 0;
+exports.MyTemporaryTransactionPool = exports.MyWallet = void 0;
 //import * as CryptoJS from 'crypto-js';
 var node_forge_1 = __importDefault(require("node-forge"));
 // Generate a key pair
@@ -403,8 +403,6 @@ var Wallet = /** @class */ (function () {
         var inputs = new InputList();
         var outputs = new OutputList();
         // Add transaction logic...
-        //         const inputs: InputList = new InputList();
-        // const publickey = await window.crypto.subtle.importKey('jwk', JSON.parse(publicKey), { name: 'RSA-OAEP', hash: 'SHA-256' }, true, ['encrypt']);
         outputs.outputList.push(new Output(publicKey, money));
         var totalInputAmount = 0;
         // Add all transaction outputs where the publicKey matches the wallet's publicKey
@@ -437,11 +435,12 @@ var Wallet = /** @class */ (function () {
         }
         else if (change < 0) {
             console.log("Not enough balance. Additional " + -change + " coins required.");
-            return '0';
+            return null;
         }
         // Create new transaction
+        return new Transaction(inputs, outputs);
         sendtransaction(new Transaction(inputs, outputs));
-        return 'Transaction sent';
+        // return 'Transaction sent';
         // Your existing code...
     };
     Wallet.prototype.signAndVerify = function (transaction) {
@@ -465,11 +464,13 @@ function sendBlock(block) {
     // 
 }
 var MyTemporaryTransactionPool = new TransactionPool();
+exports.MyTemporaryTransactionPool = MyTemporaryTransactionPool;
 var MyTransactionPool = new TransactionPool();
 var MyWallet = new Wallet();
 exports.MyWallet = MyWallet;
 var bob = new Wallet();
 var MyChain = new Chain();
+// const MyBlock = new Block();
 var MyTransactionlist = [];
 var satoshi = new Wallet();
 var alice = new Wallet();
