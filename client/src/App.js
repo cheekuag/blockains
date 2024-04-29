@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import './App.css'; // Import your CSS file
-const { MyWallet }  = require('./Transaction.js');
+const { MyWallet, MyTransactionlist, makeBlock, validateblock } = require('./Transaction.js');
+const { OverallDifficulty, tranactionPerBlock } = require('./constants.js');
 const socket = io('http://localhost:4000');
 
 function App() {
   const [money, setMoney] = useState('');
   const [publicKey, setPublicKey] = useState('');
-
   const [errorMessage, setErrorMessage] = useState('');
   const [messages, setMessages] = useState([]);
+  const [validation, setvalidation] = useState();
+  const [Block,setBlock]=useState();
 
-  useEffect(() => {
-    socket.on('message', (data) => {
-      setMessages((prevMessages) => [...prevMessages, data]);
-    });
-  }, []);
+  useEffect( () => {
+   
+  }, socket.on('recieveBlock', block => {
+    console.log("recievedBlock", block);
+    if (validation) {
+      setvalidation(false);
+      const bool =  validateblock(block);
+      console.log(bool)
+      setvalidation(true)
+    }
+  }),[])
 
   const handleMoneyChange = (e) => {
     setMoney(e.target.value);
@@ -27,25 +35,54 @@ function App() {
 
 
   const sendMessage = () => {
-    if (!money || !publicKey ) {
+    if (!money || !publicKey) {
       setErrorMessage('Please fill in all fields.');
       setMoney('');
       setPublicKey('');
-   return;
+      return;
     }
     const message = {
       money: parseInt(money),
       publicKey: publicKey,
     };
 
- 
 
-    const wallet=MyWallet(money,publicKey)
+    try {
+      var txn = MyWallet.sendMoney(publicKey, money);
+      // Emit the transaction to the server
+      console.log("Txn sent", txn);
+      socket.emit('sendTransaction', txn);
+      console.log("sentTransaction");
+    } catch (error) {
+      console.error('Error sending money:', error.message);
+      setErrorMessage('Error sending money. Please try again.');
+    }
+
+    socket.on('recieveTransaction', transaction => {
+      console.log("recieveTransaction");
+      console.log("txn received", transaction);
+      MyTransactionlist.push(transaction);
+      if (MyTransactionlist.length >= tranactionPerBlock) {
+        var block = makeBlock();
+        console.log("Block sent", block);
+        socket.emit('sendBlock', block);
+      }
+    });
 
     setErrorMessage('');
     setMoney('');
     setPublicKey('');
   };
+  // socket.on('recieveTransaction', txn => {
+  //   console.log("recieveTransaction");
+  //   console.log("txn received", txn);
+  //   MyTransactionlist.push(txn);
+  //   if (MyTransactionlist.length >= tranactionPerBlock) {
+  //     var block = makeBlock();
+  //   }
+
+  //   socket.emit('sendBlock', block);
+  // });
 
   return (
     <div className="container">

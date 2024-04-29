@@ -474,6 +474,7 @@ function makeBlock() {
                 var input = _e.value;
                 // Check if the transaction hash and output index key is present in the transaction pool
                 if (!MyTransactionPool.transactionPool.has([input.transactionHash, input.outputIndex])) {
+                    console.log("Input Transaction not found in the transaction pool");
                     return null; // Return false if any input is not present in the transaction pool
                 }
             }
@@ -519,6 +520,7 @@ function makeBlock() {
         }
         // If input amount sum is less than output amount sum, return false
         if (inputSum < outputSum) {
+            console.log("Input amount sum is less than output amount sum");
             return null;
         }
         // Add the positive difference to the coinbase variable

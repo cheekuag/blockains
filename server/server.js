@@ -16,11 +16,16 @@ const PORT = 4000;
 
 io.on('connection', (socket) => {
   console.log('A user connected');
-  socket.on('message', (data) => {
-    io.emit('recieve_message', data); // Broadcast the message to all connected clients
+  socket.on('sendTransaction', (transaction) => {
+    io.emit('recieveTransaction', transaction); // Broadcast the message to all connected clients
   });
+
+  socket.on('sendBlock',block=>{
+    console.log("Block received",block);
+    io.emit('recieveBlock',block);
+  })
 });
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-});
+}); 
