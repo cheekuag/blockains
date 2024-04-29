@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
+import { useCustomContext } from './context.js';
 import "./App.css"; // Import your CSS file
 const {
   MyWallet,
@@ -15,7 +16,7 @@ const {
 } = require("./Transaction.js");
 const { OverallDifficulty, tranactionPerBlock } = require("./constants.js");
 // const socket = io("http://localhost:4000");
-const socket = io('http://192.168.66.62:4000');
+const socket = io('http://192.168.66.212:4000');
 
 function App() {
   const [money, setMoney] = useState("");
@@ -23,6 +24,11 @@ function App() {
   const [errorMessage, setErrorMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [validation, setvalidation] = useState(true);
+  const { contextValue,updateContextValue } = useCustomContext();
+
+  const handleChange = () => {
+    updateContextValue();
+  };
 
   useEffect(() => {
   
@@ -60,6 +66,8 @@ function App() {
           setErrorMessage("Invalid Block");
           return;
         }
+        
+        updateContextValue(getbalance());
         // console.log(bool)
         setvalidation(true);
       }
@@ -130,7 +138,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Socket.io Demo</h1>
+      <h1>GeorgeCoin</h1>
       <form>
         <div className="form-group">
           <label>Money:</label>
@@ -144,22 +152,17 @@ function App() {
             onChange={handlePublicKeyChange}
           />
         </div>
+        <div className="form-group">
+          <label>Balance:</label>
+          <span>{contextValue}</span>
+        </div>
         <button type="button" onClick={sendMessage}>
           Send Money
         </button>
         {errorMessage && <div className="error-message">{errorMessage}</div>}
+
       </form>
-      <div className="messages-container">
-        <h2>All Messages</h2>
-        <ul>
-          {messages.map((msg, index) => (
-            <li key={index}>
-              Money: {msg.money}, Receiver Public Key: {msg.publicKey}, Previous
-              Transaction Hash: {msg.prevTxnHash}
-            </li>
-          ))}
-        </ul>
-      </div>
+      
     </div>
   );
 }
