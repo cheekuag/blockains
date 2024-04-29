@@ -1,87 +1,101 @@
-import React, { useState, useEffect } from 'react';
-import io from 'socket.io-client';
-import './App.css'; // Import your CSS file
-const { MyWallet, MyTransactionlist, makeBlock, validateblock, Block, Transaction } = require('./Transaction.js');
-const { OverallDifficulty, tranactionPerBlock } = require('./constants.js');
-const socket = io('http://localhost:4000');
-// import { Block } from './Block.js'; // Adjust the path as per your actual file structure
+import React, { useState, useEffect } from "react";
+import io from "socket.io-client";
+import "./App.css"; // Import your CSS file
+const {
+  MyWallet,
+  MyTransactionlist,
+  makeBlock,
+  validateblock,
+  Block,
+  Transaction,
+  InputList,
+  OutputList,
+  Output,
+  getbalance
+} = require("./Transaction.js");
+const { OverallDifficulty, tranactionPerBlock } = require("./constants.js");
+// const socket = io("http://localhost:4000");
+const socket = io('http://192.168.66.62:4000');
+
 function App() {
-  const [money, setMoney] = useState('');
-  const [publicKey, setPublicKey] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [money, setMoney] = useState("");
+  const [publicKey, setPublicKey] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [validation, setvalidation] = useState(true);
-  // const [Block,setBlock]=useState();
 
-  // useEffect( () => {
-   
-  // }, socket.on('recieveBlock', block => {
-  //   console.log("recievedBlock", block);
-  //   if (validation) {
-  //     setvalidation(false);
-  //     const bool =  validateblock(block);
-  //     console.log(bool)
-  //     setvalidation(true)
-  //   }
-  // }),[])
-
-  // socket.on('recieveBlock', block => {
-  //   console.log("recievedBlock", block);
-  //   if (validation) {
-  //     console.log("validation",validation)
-  //     setvalidation(false);
-  //     const bool = validateblock(block);
-  //     console.log(bool)
-  //     setvalidation(true)
-  //   }
-  // });
   useEffect(() => {
-    socket.on('recieveBlock', blockData => {
-      console.log("recieveBlock");
-      console.log(blockData);
+  
+    socket.on('keyPair', (keyPair) => {
+      MyWallet.publicKey = keyPair.publicKey;
+      MyWallet.privateKey = keyPair.privateKey;
+      console.log("keys-pair", keyPair);
+    });
+
+    socket.on("keys", keyspublic => {
+      // iterate over keyspublic and print it
+      for (let i = 0; i < keyspublic.length; i++) {
+        console.log("Public-Key", keyspublic[i]);
+      }
+    });
+
+    socket.on("recieveBlock", (blockData) => {
+      console.log("Socket recieveBlock");
+      // console.log(blockData);
       const receivedBlock = new Block(
         blockData.prevHash,
         blockData.transactionlist,
         true, // Assuming flag should be set to true
         blockData.difficulty,
-        blockData.ts
+        blockData.ts,
+        blockData.nonce
       );
-      
-      console.log("recievedBlock", receivedBlock);
+
+      // console.log("recievedBlock", receivedBlock);
       if (validation) {
-        console.log("validation",validation)
+        // console.log("validation",validation)
         setvalidation(false);
         const bool = validateblock(receivedBlock);
-        console.log(bool)
-        setvalidation(true)
+        if (bool == false) {
+          setErrorMessage("Invalid Block");
+          return;
+        }
+        // console.log(bool)
+        setvalidation(true);
       }
     });
-    socket.on('recieveTransaction', transactionData => {
-      console.log("recieveTransaction");
+    socket.on("recieveTransaction", (transactionData) => {
+      console.log("Socket recieveTransaction");
       // Cast the received transaction data into a Transaction instance
       const receivedTransaction = new Transaction(
         transactionData.Inputs,
         transactionData.Outputs
       );
-    
+
       // Push the received transaction to MyTransactionlist
       MyTransactionlist.push(receivedTransaction);
-    
+
       // Check if MyTransactionlist length is greater than or equal to tranactionPerBlock
       if (MyTransactionlist.length >= tranactionPerBlock) {
         // Create a new block
         var block = makeBlock();
-        console.log("Block sent", block);
+        if (block == null) {
+          setErrorMessage("Insufficient Transactions");
+          return;
+        }
+        console.log("Socket sentBlock");
         // Emit the block to the server
-        socket.emit('sendBlock', block);;
+        socket.emit("sendBlock", block);
       }
     });
     // Clean up function to remove the event listener when component unmounts
     return () => {
-      socket.off('recieveBlock');
-      socket.off('recieveTransaction');
+      socket.off("recieveBlock");
+      socket.off("recieveTransaction");
+      socket.off("keyPair");
+      socket.off("keys");
     };
-  }, []); 
+  }, []);
 
   const handleMoneyChange = (e) => {
     setMoney(e.target.value);
@@ -91,58 +105,28 @@ function App() {
     setPublicKey(e.target.value);
   };
 
-
   const sendMessage = () => {
     if (!money || !publicKey) {
-      setErrorMessage('Please fill in all fields.');
-      setMoney('');
-      setPublicKey('');
+      setErrorMessage("Please fill in all fields.");
+      setMoney("");
+      setPublicKey("");
       return;
     }
-    const message = {
-      money: parseInt(money),
-      publicKey: publicKey,
-    };
 
-    console.log("sendingTransaction");
-    // try {
-      var txn = MyWallet.sendMoney(publicKey, parseInt(money));
-      // var txn = 1;
-      // Emit the transaction to the server
-      console.log("Txn sent", txn);
-      socket.emit('sendTransaction', txn);
-      console.log("sentTransaction");
-    // } catch (error) {
-    //   console.error('Error sending money:', error.message);
-    //   setErrorMessage('Error sending money. Please try again.');
-    // }
-
-    // socket.on('recieveTransaction', transaction => {
-    //   console.log("recieveTransaction");
-    //   console.log("txn received", transaction);
-    //   MyTransactionlist.push(transaction);
-    //   if (MyTransactionlist.length >= tranactionPerBlock) {
-    //     var block = makeBlock();
-    //     console.log("Block sent", block);
-    //     socket.emit('sendBlock', block);
-    //   }
-    // });
-
-    
-    setErrorMessage('');
-    setMoney('');
-    setPublicKey('');
+    // console.log("sendingTransaction");
+    var txn = MyWallet.sendMoney(publicKey, parseInt(money));
+    if (txn == null) {
+      setErrorMessage("Insufficient Balance");
+      return;
+    }
+    // Emit the transaction to the server
+    console.log("Socket sentTransaction", txn);
+    socket.emit("sendTransaction", txn);
+    // console.log("sentTransaction");
+    setErrorMessage("");
+    setMoney("");
+    setPublicKey("");
   };
-  // socket.on('recieveTransaction', txn => {
-  //   console.log("recieveTransaction");
-  //   console.log("txn received", txn);
-  //   MyTransactionlist.push(txn);
-  //   if (MyTransactionlist.length >= tranactionPerBlock) {
-  //     var block = makeBlock();
-  //   }
-
-  //   socket.emit('sendBlock', block);
-  // });
 
   return (
     <div className="container">
@@ -154,7 +138,11 @@ function App() {
         </div>
         <div className="form-group">
           <label>Receiver Public Key:</label>
-          <input type="number" value={publicKey} onChange={handlePublicKeyChange} />
+          <input
+            type="text"
+            value={publicKey}
+            onChange={handlePublicKeyChange}
+          />
         </div>
         <button type="button" onClick={sendMessage}>
           Send Money
@@ -166,7 +154,8 @@ function App() {
         <ul>
           {messages.map((msg, index) => (
             <li key={index}>
-              Money: {msg.money}, Receiver Public Key: {msg.publicKey}, Previous Transaction Hash: {msg.prevTxnHash}
+              Money: {msg.money}, Receiver Public Key: {msg.publicKey}, Previous
+              Transaction Hash: {msg.prevTxnHash}
             </li>
           ))}
         </ul>
