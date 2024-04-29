@@ -30,7 +30,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateblock = exports.makeBlock = exports.MyTransactionlist = exports.MyWallet = void 0;
+exports.validateblock = exports.makeBlock = exports.MyTransactionlist = exports.MyWallet = exports.Block = void 0;
 //import * as CryptoJS from 'crypto-js';
 var node_forge_1 = __importDefault(require("node-forge"));
 // Generate a key pair
@@ -303,6 +303,7 @@ var Block = /** @class */ (function () {
             this.nonce++;
             hash = this.calculateHash(this.nonce);
         }
+        this.hash = hash;
         console.log("Block mined: " + hash);
         // MyChain.sendBlock(this);
     };
@@ -330,6 +331,7 @@ var Block = /** @class */ (function () {
     };
     return Block;
 }());
+exports.Block = Block;
 // recieve
 // recieve transaction
 // validate transaction

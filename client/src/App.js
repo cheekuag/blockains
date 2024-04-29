@@ -48,7 +48,7 @@ function App() {
 
 
     try {
-      var txn = MyWallet.sendMoney(publicKey, money);
+      var txn = MyWallet.sendMoney(publicKey, parseInt(money));
       // Emit the transaction to the server
       console.log("Txn sent", txn);
       socket.emit('sendTransaction', txn);
